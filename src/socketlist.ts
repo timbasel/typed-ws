@@ -13,6 +13,12 @@ export class TypedWebSocketList<
     Object.setPrototypeOf(this, Object.create(TypedWebSocketList.prototype));
   }
 
+  public close(): void {
+    for (let i = 0; i < this.length; i++) {
+      this[i].close();
+    }
+  }
+
   public remove<TEvent extends keyof TReceiveEvents>(
     event: TEvent,
     listener: EventListener<TReceiveEvents[TEvent]>
@@ -40,9 +46,9 @@ export class TypedWebSocketList<
     }
   }
 
-  public close(): void {
+  public async error(error: Error, close = false): Promise<void> {
     for (let i = 0; i < this.length; i++) {
-      this[i].close();
+      this[i].error(error, close);
     }
   }
 }
