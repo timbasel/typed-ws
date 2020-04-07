@@ -13,12 +13,21 @@ export class TypedWebSocketList<
     Object.setPrototypeOf(this, Object.create(TypedWebSocketList.prototype));
   }
 
-  on<TEvent extends keyof TReceiveEvents>(
+  public remove<TEvent extends keyof TReceiveEvents>(
     event: TEvent,
     listener: EventListener<TReceiveEvents[TEvent]>
   ): void {
-    for (const tws of this) {
-      tws.on(event, listener);
+    for (let i = 0; i < this.length; i++) {
+      this[i].remove(event, listener);
+    }
+  }
+
+  public on<TEvent extends keyof TReceiveEvents>(
+    event: TEvent,
+    listener: EventListener<TReceiveEvents[TEvent]>
+  ): void {
+    for (let i = 0; i < this.length; i++) {
+      this[i].on(event, listener);
     }
   }
 
@@ -26,14 +35,14 @@ export class TypedWebSocketList<
     event: TEvent,
     ...args: EventArgumentTypes<TSendEvents[TEvent]>
   ): Promise<void> {
-    for (const tws of this) {
-      tws.emit(event, ...args);
+    for (let i = 0; i < this.length; i++) {
+      this[i].emit(event, ...args);
     }
   }
 
   public close(): void {
-    for (const tws of this) {
-      tws.close();
+    for (let i = 0; i < this.length; i++) {
+      this[i].close();
     }
   }
 }

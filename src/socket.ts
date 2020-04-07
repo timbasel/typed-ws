@@ -70,6 +70,17 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
     this.ws.close();
   }
 
+  public remove<TEvent extends keyof TReceiveEvents>(
+    event: TEvent,
+    listener: EventListener<TReceiveEvents[TEvent]>
+  ): TypedWebSocket<TReceiveEvents, TSendEvents> {
+    const index = this.listeners.findIndex((item) => item.listener == listener);
+    if (index > 0) {
+      this.listeners.splice(index, 1);
+    }
+    return this;
+  }
+
   public on<TEvent extends keyof TReceiveEvents>(
     event: TEvent,
     listener: EventListener<TReceiveEvents[TEvent]>
