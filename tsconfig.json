@@ -1,0 +1,35 @@
+{
+  "compileOnSave": false,
+  "include": [ "./src/**/*.ts" ],
+  "exclude": [ "./node_modules/" ],
+  "compilerOptions": {
+      "baseUrl": "./src/",
+      "outDir": "./dist/",
+      "target": "es6",
+      "typeRoots": [ "./node_modules/@types/" ],
+      "lib": [ "esnext", "dom", "dom.iterable", "scripthost" ],
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "paths": {
+          "@/*": [ "./*" ]
+      },
+
+      "sourceMap": true,
+      "declaration": true,
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "allowSyntheticDefaultImports": true,
+      "importHelpers": true,
+
+      "strict": true,
+      "alwaysStrict": true,
+      "strictNullChecks": true,
+      "forceConsistentCasingInFileNames": true,
+      "noUnusedLocals": true,
+      "noImplicitAny": true,
+      "noImplicitReturns": true,
+      "noImplicitThis": true,
+
+      "preserveWatchOutput": true,
+  }
+}
