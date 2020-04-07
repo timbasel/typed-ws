@@ -1,16 +1,22 @@
 {
   "name": "typed-ws",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "A TypeScript library for strongly typed WebSockets.",
   "repository": "git@github.com:timbasel/typed-ws.git",
   "author": "timbasel <tim@basel-berlin.de>",
   "license": "GPL-3.0-or-later",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "src/**/*",
+    "LICENSE"
+  ],
   "scripts": {
     "dev": "ts-node -r tsconfig-paths/register example/index.ts",
     "build": "tsc",
-    "lint": "eslint --ext .js,.jsx,.ts,.tsx src/* example/*"
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx src/* example/*",
+    "prepublish": "yarn run build"
   },
   "dependencies": {
     "ws": "^7.2.3"
