@@ -74,9 +74,22 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
     event: TEvent,
     listener: EventListener<TReceiveEvents[TEvent]>
   ): TypedWebSocket<TReceiveEvents, TSendEvents> {
-    const index = this.listeners.findIndex((item) => item.listener == listener);
+    const index = this.listeners.findIndex(
+      (item) => item.event == event && item.listener == listener
+    );
     if (index > 0) {
       this.listeners.splice(index, 1);
+    }
+    return this;
+  }
+
+  public removeAll<TEvent extends keyof TReceiveEvents>(
+    event: TEvent
+  ): TypedWebSocket<TReceiveEvents, TSendEvents> {
+    for (let index = 0; index < this.listeners.length; index++) {
+      if (this.listeners[index].event == event) {
+        this.listeners.splice(index, 1);
+      }
     }
     return this;
   }

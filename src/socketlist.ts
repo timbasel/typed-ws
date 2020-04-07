@@ -28,6 +28,12 @@ export class TypedWebSocketList<
     }
   }
 
+  public removeAll<TEvent extends keyof TReceiveEvents>(event: TEvent): void {
+    for (let i = 0; i < this.length; i++) {
+      this[i].removeAll(event);
+    }
+  }
+
   public on<TEvent extends keyof TReceiveEvents>(
     event: TEvent,
     listener: EventListener<TReceiveEvents[TEvent]>
