@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as WebSocket from "ws";
 
-import { EventArgumentTypes, EventListener } from "./types";
+import { EventArgumentTypes, EventListener, Listener } from "./types";
 
 export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
   private readonly ws: WebSocket;
   private readonly listeners: Array<{
     event: keyof TReceiveEvents;
-    listener: (...args: any[]) => any;
+    listener: Listener;
     once: boolean;
   }> = [];
 

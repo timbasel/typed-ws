@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+export type Listener = (...args: any[]) => any;
+
 export type EventArgumentTypes<T> = [T] extends [(...args: infer U) => any]
   ? U
   : [T] extends [void]
