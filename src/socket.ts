@@ -118,11 +118,13 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
   }
 
   public async error(error: Error, close = false): Promise<void> {
-    this.ws.send({
-      event: "error",
-      name: error.name,
-      message: error.message,
-    });
+    this.ws.send(
+      JSON.stringify({
+        event: "error",
+        name: error.name,
+        message: error.message,
+      })
+    );
     if (close) {
       this.ws.close();
     }
