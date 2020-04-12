@@ -1,6 +1,19 @@
-import { WebSocket } from "./websocket";
-
 import { EventArgumentTypes, EventListener, Listener } from "./types";
+
+import NodeWebSocket from "ws";
+interface BrowserWebSocket {
+  readyState: number;
+  CONNECTING: number;
+  OPEN: number;
+  send: (event?: string) => void;
+  onopen?: (event?: Event) => void;
+  onmessage?: (event: MessageEvent) => void;
+  onerror?: (event: Event) => void;
+  onclose?: (event: CloseEvent) => void;
+  close: () => void;
+}
+
+type WebSocket = BrowserWebSocket | NodeWebSocket;
 
 export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
   private readonly ws: WebSocket;
@@ -58,7 +71,7 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
     return new Promise((resolve) => {
       if (this.ws.readyState === WebSocket.CONNECTING) {
         this.ws.onopen = (): void => {
-          this.ws.onopen = null;
+          this.ws.onopen = undefined;
           resolve();
         };
       } else {
