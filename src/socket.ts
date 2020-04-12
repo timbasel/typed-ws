@@ -1,4 +1,4 @@
-import WebSocket from "ws";
+import { WebSocket } from "./websocket";
 
 import { EventArgumentTypes, EventListener, Listener } from "./types";
 
@@ -13,13 +13,13 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
   public constructor(ws: WebSocket) {
     this.ws = ws;
 
-    this.ws.on("message", this.handleError(this.ws, this.onMessage));
+    this.ws.onmessage = this.handleError(this.ws, this.onMessage);
   }
 
   private handleError<T>(
     ws: WebSocket,
-    fn: (data: WebSocket.Data) => Promise<T>
-  ): (data: WebSocket.Data) => Promise<T | void> {
+    fn: (msg: MessageEvent) => Promise<T>
+  ): (msg: MessageEvent) => Promise<T | void> {
     return async (data): Promise<T | void> => {
       try {
         return await fn.bind(this)(data);
@@ -37,11 +37,11 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
     };
   }
 
-  private async onMessage(data: WebSocket.Data): Promise<void> {
-    if (typeof data != "string") {
+  private async onMessage(msg: MessageEvent): Promise<void> {
+    if (typeof msg.data != "string") {
       throw new Error("invalid data type");
     }
-    const json = JSON.parse(data);
+    const json = JSON.parse(msg.data);
     const messageEvent = json.event;
     this.listeners.forEach(({ event, listener, once }, index) => {
       if (event == messageEvent) {
@@ -57,9 +57,10 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
   public async open(): Promise<void> {
     return new Promise((resolve) => {
       if (this.ws.readyState === WebSocket.CONNECTING) {
-        this.ws.once("open", () => {
+        this.ws.onopen = (): void => {
+          this.ws.onopen = null;
           resolve();
-        });
+        };
       } else {
         resolve();
       }
