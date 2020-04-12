@@ -1,6 +1,6 @@
 {
   "name": "typed-ws",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "A TypeScript library for strongly typed WebSockets.",
   "repository": "git@github.com:timbasel/typed-ws.git",
   "author": "timbasel <tim@basel-berlin.de>",
@@ -9,7 +9,6 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist/**/*",
-    "src/**/*",
     "LICENSE"
   ],
   "scripts": {
