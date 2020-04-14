@@ -70,7 +70,9 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
       if (this.ws.readyState === this.ws.CONNECTING) {
         const listener = this.ws.onopen as Listener;
         this.onOpen(() => {
-          listener();
+          if (listener) {
+            listener();
+          }
           this.ws.onopen = listener;
           resolve();
         });
