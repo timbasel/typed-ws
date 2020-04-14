@@ -15,3 +15,7 @@ export type EventReturnType<T> = T extends (...args: any[]) => any
 export type EventListener<T> = (
   ...args: EventArgumentTypes<T>
 ) => EventReturnType<T>;
+
+import * as NodeWebSocket from "ws";
+type IsomorphicWebSocket = WebSocket | NodeWebSocket;
+export { IsomorphicWebSocket as WebSocket };
