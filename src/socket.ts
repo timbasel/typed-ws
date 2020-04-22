@@ -137,8 +137,7 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
     this.ws.send(
       JSON.stringify({
         event: "error",
-        name: error.name,
-        message: error.message,
+        args: [error.message],
       })
     );
     if (close) {
