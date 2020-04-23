@@ -13,6 +13,12 @@ export class TypedWebSocketList<
     Object.setPrototypeOf(this, Object.create(TypedWebSocketList.prototype));
   }
 
+  public async open(): Promise<void> {
+    for (let i = 0; i < this.length; i++) {
+      await this[i].open();
+    }
+  }
+
   public close(): void {
     for (let i = 0; i < this.length; i++) {
       this[i].close();
@@ -57,12 +63,17 @@ export class TypedWebSocketList<
     timeout?: number
   ): Promise<void> {
     const events = event instanceof Array ? event : [event];
-    const promise = new Promise<void>((resolve) => {
+    const promise = new Promise<void>((resolve, reject) => {
       for (let i = 0; i < this.length; i++) {
-        this[i].receive(events, timeout).then(() => {
-          this[i].received(events);
-        });
-        resolve();
+        this[i]
+          .receive(events, timeout)
+          .then(() => {
+            this.forEach((socket) => socket.received(events));
+            resolve();
+          })
+          .catch(() => {
+            reject();
+          });
       }
     });
 

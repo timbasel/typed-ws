@@ -1,5 +1,5 @@
 import * as WS from "ws";
-import { TypedWebSocket } from "../src";
+import { TypedWebSocket, TypedWebSocketList } from "../src";
 
 interface Events {
   foo: (name: string) => void;
@@ -20,8 +20,11 @@ async function server(): Promise<void> {
     tws.on("foo", (name: string) => {
       console.log(`Hello ${name}`);
     });
-    await sleep(5000);
-    tws.send("foo", "te4st");
+
+    for (let i = 0; i < 5; i++) {
+      await sleep(1000);
+      tws.send("foo", "te4st");
+    }
   });
 }
 
@@ -30,13 +33,21 @@ async function client(): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tws = new TypedWebSocket<Events>(ws as any);
 
-  await tws.open();
-  tws.send("foo", "World");
+  const twsl = new TypedWebSocketList<Events>(
+    tws,
+    new TypedWebSocket<Events>(new WS("ws://localhost:8080"))
+  );
 
-  await tws.receive(["foo", "bar"]).catch(() => {
-    console.log("nothing received");
-  });
-  console.log("Received for or bar");
+  await twsl.open();
+  twsl.send("foo", "World");
+
+  for (let i = 0; i < 5; i++) {
+    await twsl.receive(["foo", "bar"], 2000).catch(() => {
+      console.log("nothing received");
+    });
+    console.log("Received for or bar");
+  }
+  console.log("loop finished");
 }
 
 async function main(): Promise<void> {
