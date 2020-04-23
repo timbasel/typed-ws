@@ -118,6 +118,12 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
         this.listeners.splice(index, 1);
       }
     }
+    for (let index = 0; index < this.receivers.length; index++) {
+      if (this.receivers[index].events.includes(event)) {
+        this.receivers[index].promise.resolve();
+        this.receivers.splice(index, 1);
+      }
+    }
     return this;
   }
 
