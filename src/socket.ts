@@ -63,8 +63,8 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
     this.receivers.forEach(({ events, promise }, index) => {
       if (events.includes(messageEvent)) {
         promise.resolve();
+        this.receivers.splice(index, 1);
       }
-      this.receivers.splice(index, 1);
     });
   }
 
