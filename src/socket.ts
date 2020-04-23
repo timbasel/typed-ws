@@ -2,6 +2,7 @@ import {
   EventArgumentTypes,
   EventListener,
   Listener,
+  PromiseReceiver,
   WebSocket,
 } from "./types";
 
@@ -10,6 +11,7 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
   private readonly listeners: Array<{
     event: keyof TReceiveEvents;
     listener: Listener;
+    receiver: Array<PromiseReceiver<void>>;
     once: boolean;
   }> = [];
 
@@ -46,9 +48,14 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
     }
     const json = JSON.parse(msg.data);
     const messageEvent = json.event;
-    this.listeners.forEach(({ event, listener, once }, index) => {
+    this.listeners.forEach(({ event, listener, receiver, once }, index) => {
       if (event == messageEvent) {
         listener(...(json.args || []));
+      }
+
+      if (receiver.length > 0) {
+        receiver.forEach((recv) => recv.resolve());
+        this.listeners[index].receiver = [];
       }
 
       if (once) {
@@ -114,7 +121,7 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
     event: TEvent,
     listener: EventListener<TReceiveEvents[TEvent]>
   ): TypedWebSocket<TReceiveEvents, TSendEvents> {
-    this.listeners.push({ event, listener, once: false });
+    this.listeners.push({ event, listener, receiver: [], once: false });
     return this;
   }
 
@@ -122,7 +129,7 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
     event: TEvent,
     listener: EventListener<TReceiveEvents[TEvent]>
   ): TypedWebSocket<TReceiveEvents, TSendEvents> {
-    this.listeners.push({ event, listener, once: true });
+    this.listeners.push({ event, listener, receiver: [], once: true });
     return this;
   }
 
@@ -131,6 +138,22 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
     ...args: EventArgumentTypes<TSendEvents[TEvent]>
   ): Promise<void> {
     this.ws.send(JSON.stringify({ event: event, args: args }));
+  }
+
+  public async receive<TEvent extends keyof TReceiveEvents>(
+    ...events: Array<TEvent>
+  ): Promise<void> {
+    const promise = new Promise<void>((resolve, reject) => {
+      const listeners = this.listeners.filter((listener) =>
+        events.find((event) => listener.event == event)
+      );
+
+      listeners.forEach((listener) =>
+        listener.receiver.push({ resolve, reject })
+      );
+    });
+
+    return promise;
   }
 
   public async error(error: Error, close = false): Promise<void> {

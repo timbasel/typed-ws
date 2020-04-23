@@ -16,6 +16,11 @@ export type EventListener<T> = (
   ...args: EventArgumentTypes<T>
 ) => EventReturnType<T>;
 
+export type PromiseReceiver<T> = {
+  resolve: (value?: T) => void;
+  reject: (reason?: any) => void;
+};
+
 import * as NodeWebSocket from "ws";
 type IsomorphicWebSocket = WebSocket | NodeWebSocket;
 export { IsomorphicWebSocket as WebSocket };
