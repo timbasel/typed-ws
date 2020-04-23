@@ -2,7 +2,12 @@ import * as WS from "ws";
 import { TypedWebSocket } from "../src";
 
 interface Events {
-  greet: (name: string) => void;
+  foo: (name: string) => void;
+  bar: () => void;
+}
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function server(): Promise<void> {
@@ -10,11 +15,13 @@ async function server(): Promise<void> {
     port: 8080,
   });
 
-  wss.on("connection", (ws: WebSocket) => {
+  wss.on("connection", async (ws: WebSocket) => {
     const tws = new TypedWebSocket<Events>(ws);
-    tws.on("greet", (name: string) => {
+    tws.on("foo", (name: string) => {
       console.log(`Hello ${name}`);
     });
+    await sleep(5000);
+    tws.send("foo", "te4st");
   });
 }
 
@@ -24,7 +31,12 @@ async function client(): Promise<void> {
   const tws = new TypedWebSocket<Events>(ws as any);
 
   await tws.open();
-  tws.emit("greet", "World");
+  tws.send("foo", "World");
+
+  await tws.receive(["foo", "bar"]).catch(() => {
+    console.log("nothing received");
+  });
+  console.log("Received for or bar");
 }
 
 async function main(): Promise<void> {

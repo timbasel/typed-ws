@@ -11,8 +11,11 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
   private readonly listeners: Array<{
     event: keyof TReceiveEvents;
     listener: Listener;
-    receiver: Array<PromiseReceiver<void>>;
     once: boolean;
+  }> = [];
+  private readonly receivers: Array<{
+    events: Array<keyof TReceiveEvents>;
+    promise: PromiseReceiver<void>;
   }> = [];
 
   public constructor(ws: WebSocket) {
@@ -48,19 +51,20 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
     }
     const json = JSON.parse(msg.data);
     const messageEvent = json.event;
-    this.listeners.forEach(({ event, listener, receiver, once }, index) => {
+    this.listeners.forEach(({ event, listener, once }, index) => {
       if (event == messageEvent) {
         listener(...(json.args || []));
-      }
-
-      if (receiver.length > 0) {
-        receiver.forEach((recv) => recv.resolve());
-        this.listeners[index].receiver = [];
       }
 
       if (once) {
         this.listeners.splice(index, 1);
       }
+    });
+    this.receivers.forEach(({ events, promise }, index) => {
+      if (events.includes(messageEvent)) {
+        promise.resolve();
+      }
+      this.receivers.splice(index, 1);
     });
   }
 
@@ -121,7 +125,7 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
     event: TEvent,
     listener: EventListener<TReceiveEvents[TEvent]>
   ): TypedWebSocket<TReceiveEvents, TSendEvents> {
-    this.listeners.push({ event, listener, receiver: [], once: false });
+    this.listeners.push({ event, listener, once: false });
     return this;
   }
 
@@ -129,11 +133,11 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
     event: TEvent,
     listener: EventListener<TReceiveEvents[TEvent]>
   ): TypedWebSocket<TReceiveEvents, TSendEvents> {
-    this.listeners.push({ event, listener, receiver: [], once: true });
+    this.listeners.push({ event, listener, once: true });
     return this;
   }
 
-  public async emit<TEvent extends keyof TSendEvents>(
+  public async send<TEvent extends keyof TSendEvents>(
     event: TEvent,
     ...args: EventArgumentTypes<TSendEvents[TEvent]>
   ): Promise<void> {
@@ -141,19 +145,34 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
   }
 
   public async receive<TEvent extends keyof TReceiveEvents>(
-    ...events: Array<TEvent>
+    event: TEvent | Array<TEvent>,
+    timeout = 10000
   ): Promise<void> {
+    const events = event instanceof Array ? event : [event];
     const promise = new Promise<void>((resolve, reject) => {
-      const listeners = this.listeners.filter((listener) =>
-        events.find((event) => listener.event == event)
-      );
+      this.receivers.push({ events, promise: { resolve, reject } });
 
-      listeners.forEach((listener) =>
-        listener.receiver.push({ resolve, reject })
-      );
+      setTimeout(() => {
+        reject();
+      }, timeout);
     });
 
     return promise;
+  }
+
+  public received<TEvent extends keyof TReceiveEvents>(
+    event: TEvent | Array<TEvent>
+  ): void {
+    const events = event instanceof Array ? event : [event];
+    this.receivers.forEach((receiver, index) => {
+      for (const event of events) {
+        if (receiver.events.includes(event)) {
+          receiver.promise.resolve();
+          this.receivers.slice(index, 1);
+        }
+      }
+      return false;
+    });
   }
 
   public async error(error: Error, close = false): Promise<void> {

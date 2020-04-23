@@ -43,13 +43,30 @@ export class TypedWebSocketList<
     }
   }
 
-  public async emit<TEvent extends keyof TSendEvents>(
+  public async send<TEvent extends keyof TSendEvents>(
     event: TEvent,
     ...args: EventArgumentTypes<TSendEvents[TEvent]>
   ): Promise<void> {
     for (let i = 0; i < this.length; i++) {
-      this[i].emit(event, ...args);
+      this[i].send(event, ...args);
     }
+  }
+
+  public async receive<TEvent extends keyof TReceiveEvents>(
+    event: TEvent | Array<TEvent>,
+    timeout?: number
+  ): Promise<void> {
+    const events = event instanceof Array ? event : [event];
+    const promise = new Promise<void>((resolve) => {
+      for (let i = 0; i < this.length; i++) {
+        this[i].receive(events, timeout).then(() => {
+          this[i].received(events);
+        });
+        resolve();
+      }
+    });
+
+    return promise;
   }
 
   public async error(error: Error, close = false): Promise<void> {
