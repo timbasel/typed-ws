@@ -15,7 +15,7 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
   }> = [];
   private readonly receivers: Array<{
     events: Array<keyof TReceiveEvents>;
-    promise: PromiseReceiver<void>;
+    promise: PromiseReceiver<keyof TReceiveEvents>;
   }> = [];
 
   public constructor(ws: WebSocket) {
@@ -62,7 +62,7 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
     });
     this.receivers.forEach(({ events, promise }, index) => {
       if (events.includes(messageEvent)) {
-        promise.resolve();
+        promise.resolve(messageEvent);
         this.receivers.splice(index, 1);
       }
     });
@@ -153,9 +153,9 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
   public async receive<TEvent extends keyof TReceiveEvents>(
     event: TEvent | Array<TEvent>,
     timeout = 10000
-  ): Promise<void> {
+  ): Promise<keyof TReceiveEvents> {
     const events = event instanceof Array ? event : [event];
-    const promise = new Promise<void>((resolve, reject) => {
+    const promise = new Promise<keyof TReceiveEvents>((resolve, reject) => {
       this.receivers.push({ events, promise: { resolve, reject } });
 
       setTimeout(() => {

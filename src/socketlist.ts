@@ -61,15 +61,15 @@ export class TypedWebSocketList<
   public async receive<TEvent extends keyof TReceiveEvents>(
     event: TEvent | Array<TEvent>,
     timeout?: number
-  ): Promise<void> {
+  ): Promise<keyof TReceiveEvents> {
     const events = event instanceof Array ? event : [event];
-    const promise = new Promise<void>((resolve, reject) => {
+    const promise = new Promise<keyof TReceiveEvents>((resolve, reject) => {
       for (let i = 0; i < this.length; i++) {
         this[i]
           .receive(events, timeout)
-          .then(() => {
+          .then((event) => {
             this.forEach((socket) => socket.received(events));
-            resolve();
+            resolve(event);
           })
           .catch(() => {
             reject();

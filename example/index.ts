@@ -23,7 +23,7 @@ async function server(): Promise<void> {
 
     for (let i = 0; i < 5; i++) {
       await sleep(1000);
-      tws.send("foo", "te4st");
+      tws.send("bar");
     }
   });
 }
@@ -42,10 +42,10 @@ async function client(): Promise<void> {
   twsl.send("foo", "World");
 
   for (let i = 0; i < 5; i++) {
-    await twsl.receive(["foo", "bar"], 2000).catch(() => {
+    const event = await twsl.receive(["foo", "bar"], 2000).catch(() => {
       console.log("nothing received");
     });
-    console.log("Received for or bar");
+    console.log(`Received ${event}`);
   }
   console.log("loop finished");
 }
