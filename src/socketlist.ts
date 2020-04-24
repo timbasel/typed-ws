@@ -72,6 +72,7 @@ export class TypedWebSocketList<
             resolve(event);
           })
           .catch(() => {
+            this.forEach((socket) => socket.received(events, false));
             reject();
           });
       }

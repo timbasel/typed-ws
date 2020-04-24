@@ -167,13 +167,18 @@ export class TypedWebSocket<TReceiveEvents, TSendEvents = TReceiveEvents> {
   }
 
   public received<TEvent extends keyof TReceiveEvents>(
-    event: TEvent | Array<TEvent>
+    event: TEvent | Array<TEvent>,
+    succesful = true
   ): void {
     const events = event instanceof Array ? event : [event];
     this.receivers.forEach((receiver, index) => {
       for (const event of events) {
         if (receiver.events.includes(event)) {
-          receiver.promise.resolve();
+          if (succesful) {
+            receiver.promise.resolve(event);
+          } else {
+            receiver.promise.reject();
+          }
           this.receivers.slice(index, 1);
         }
       }
